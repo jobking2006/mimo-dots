@@ -12,7 +12,6 @@ module.exports = {
   extraResources: [{ from: 'native/bin/MiMoSessionBridge.exe', to: 'native/MiMoSessionBridge.exe' }],
   files: ['src/**/*', 'package.json', 'LICENSE', 'NOTICE', '使用说明.txt'],
   asar: true,
-  electronDist: 'node_modules/electron/dist',
   compression: 'normal',
   portable: { artifactName: 'MiMo-Dots-${version}.exe', useZip: true }
 }
