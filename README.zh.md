@@ -50,3 +50,7 @@ npm run dist
 ## 许可与致谢
 
 本衍生项目按 Apache License 2.0 发布。许可条款和上游归属见 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。
+
+## macOS 预发布版
+
+Apple Silicon arm64 的安装、辅助功能授权、构建与限制见 [macOS 说明](docs/MACOS.md)。Windows v0.4.1 稳定版保持独立。

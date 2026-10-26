@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { descriptorPath } from './platform.mjs'
 
 export class DesktopError extends Error {
   constructor(message, code = 0) { super(message); this.code = code }
@@ -7,7 +7,7 @@ export class DesktopError extends Error {
 
 export class DesktopClient {
   constructor({ readDescriptor, fetchImpl = fetch } = {}) {
-    this.readDescriptor = readDescriptor ?? (async () => JSON.parse(await readFile(join(process.env.APPDATA, 'Xiaomi MiMo', 'desktop-api.json'), 'utf8')))
+    this.readDescriptor = readDescriptor ?? (async () => JSON.parse(await readFile(descriptorPath(), 'utf8')))
     this.fetch = fetchImpl
   }
   async request(route, { body, signal, stream = false } = {}) {

@@ -12,7 +12,7 @@ async function fixture(t) {
   const client={health:async()=>({ok:true,engine:'ready'}),sessions:async()=>sessions,messages:async s=>messages.get(s.sessionId)||[],watch:async()=>{},send:async()=>{throw Error('No API POST allowed in setup')}}
   const core=new Workbench(new Store(await mkdtemp(join(tmpdir(),'mimo-setup-'))),client);await core.start()
   let queue=Promise.resolve();const mutate=fn=>{const job=queue.then(()=>core.withCommand(fn));queue=job.catch(()=>{});return job}
-  const setup=new SessionSetup(core,'not-run-in-unit-checks',mutate);await setup.init()
+  const setup=new SessionSetup(core,'not-run-in-unit-checks',mutate,{platform:'win32'});await setup.init()
   setup.helper=async input=>{
     calls.push(input);assert.equal(core.s.sessionSetups.at(-1).items.find(i=>input.message.startsWith(i.marker)).status,'creating')
     const id='new-'+calls.length; sessions.push({sessionId:id,title:'test',dir:'C:/test'});messages.set(id,[{info:{id:'u-'+id,role:'user',model:{providerID:'test',modelID:'mock'}},parts:[{type:'text',text:input.message}]},{info:{id:'a-'+id,parentID:'u-'+id,role:'assistant',finish:'stop',time:{completed:1}},parts:[{type:'text',text:'WORKBENCH_SESSION_READY'}]}]);return {submitted:true}
@@ -77,4 +77,53 @@ test('recovery accepts its exact binding after interruption between binding and 
   assert.equal(core.bot('chief').binding.sessionId,'new-1');assert.equal(setup.jobs[0].status,'needsReview')
   core.bind=bind;await setup.recover(setup.jobs[0].id);await finish(setup)
   assert.equal(setup.jobs[0].status,'completed');assert.equal(calls.length,1)
+})
+
+test('a second group never reuses private or first-group sessions',async t=>{
+  const{core,setup}=await fixture(t)
+  await setup.start({botId:'chief'});await finish(setup)
+  await setup.start({groupId:'design',all:true});await finish(setup)
+  const groupId=await core.createGroup({name:'second test group',members:['chief','planner','reviewer']})
+  await setup.start({groupId,all:true});await finish(setup)
+  const ids=[core.binding('chief').sessionId,...Object.values(core.group('design').bindings).map(b=>b.sessionId),...Object.values(core.group(groupId).bindings).map(b=>b.sessionId)]
+  assert.equal(new Set(ids).size,7)
+})
+
+test('a UI-selected model must match the model verified in Desktop messages',async t=>{
+  const{core,setup}=await fixture(t),helper=setup.helper
+  setup.helper=async input=>({...await helper(input),modelID:'different-model'})
+  await setup.start({botId:'chief'});await finish(setup)
+  assert.equal(core.bot('chief').binding,null)
+  assert.equal(setup.jobs[0].status,'needsReview')
+  assert.match(setup.jobs[0].detail,/模型.*不一致/)
+})
+
+test('Mac model checkpoint persists before native submission and survives helper failure',async t=>{
+  const{core,setup,calls}=await fixture(t),helper=setup.helper
+  setup.platform='darwin'
+  setup.helper=async(input,signal,progress,checkpoint)=>{
+    await checkpoint('different-model')
+    assert.equal(setup.jobs[0].items[0].expectedModelID,'different-model')
+    await helper(input);throw Error('focus changed after submit')
+  }
+  await setup.start({botId:'chief'});await finish(setup)
+  await setup.recover(setup.jobs[0].id);await finish(setup)
+  assert.equal(calls.length,1);assert.equal(core.bot('chief').binding,null)
+  assert.match(setup.jobs[0].detail,/模型.*不一致/)
+})
+
+test('Mac refuses result-only model evidence without the durable pre-submit checkpoint',async t=>{
+  const{core,setup}=await fixture(t),helper=setup.helper;setup.platform='darwin'
+  setup.helper=async input=>({...await helper(input),modelID:'mock'})
+  await setup.start({botId:'chief'});await finish(setup)
+  assert.equal(core.bot('chief').binding,null);assert.equal(setup.jobs[0].status,'needsReview')
+})
+
+test('MiMo canonical UI casing resolves to the verified Desktop model ID without accepting other aliases',async t=>{
+  const{setup,sessions,messages}=await fixture(t),marker='[工作台建会话 casing]'
+  sessions.push({sessionId:'canonical',dir:'/test'})
+  messages.set('canonical',[{info:{id:'u',role:'user',model:{providerID:'desktop',modelID:'mimo-v2.6-flash'}},parts:[{type:'text',text:marker+' init'}]},{info:{id:'a',parentID:'u',role:'assistant',finish:'stop',time:{completed:1}},parts:[]}])
+  const item={before:['old-personal'],marker,expectedModelID:'MiMo-V2.6-Flash'}
+  assert.equal((await setup.find(item)).model,'desktop/mimo-v2.6-flash')
+  item.expectedModelID='mimo-v2.6-pro';await assert.rejects(setup.find(item),/模型.*不一致/)
 })

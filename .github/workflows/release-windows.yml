@@ -23,6 +23,7 @@ concurrency:
 
 jobs:
   release-windows:
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -30,6 +31,11 @@ jobs:
         with:
           node-version: '22.12.0'
           cache: npm
+      - name: Refuse prerelease versions
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Windows stable workflow refuses prerelease versions' }
       - run: npm ci
       - run: npm run dist
       - name: Prepare installer and checksum
@@ -55,7 +61,3 @@ jobs:
             ${{ steps.checksum.outputs.installer_path }}
             ${{ steps.checksum.outputs.checksum_path }}
           fail_on_unmatched_files: true
-
-
-
-
