@@ -31,7 +31,7 @@ jobs:
       - name: Create checksum
         shell: pwsh
         run: |
-          $installer = Get-ChildItem 'release/dots-*' -Filter 'MiMo Dots Setup *.exe' | Select-Object -First 1
+          $installer = Get-ChildItem 'release/dots-*' -Filter 'MiMo Dots Setup *.exe' -File -Recurse | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
           $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $($installer.Name)" | Set-Content -LiteralPath "$($installer.FullName).sha256" -Encoding ascii
@@ -46,6 +46,7 @@ jobs:
             ${{ steps.checksum.outputs.installer_path }}
             ${{ steps.checksum.outputs.installer_path }}.sha256
           fail_on_unmatched_files: true
+
 
 
 
