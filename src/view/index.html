@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>MiMo Dots</title>
+  <link rel="stylesheet" href="pipo.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-top"><div class="brand"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i></span><strong>mimo dots</strong></div><div><button id="toggle-nav-search" class="icon-button" aria-label="搜索机器人与工作组" title="搜索"></button><button id="add-bot" class="icon-button" aria-label="新建 Bot" title="新建 Bot"></button></div></div>
+    <div id="nav-search-wrap" hidden><input id="nav-search" type="search" placeholder="搜索机器人或工作组" aria-label="搜索机器人或工作组"></div>
+    <div class="workspace-caption">我的工作台<span>MiMo Desktop</span></div>
+    <div class="nav-scroll"><div class="nav-section"><span>机器人</span><span id="bot-count"></span></div><nav id="bots" aria-label="机器人私聊"></nav><div class="nav-section groups-heading"><span>小组对话</span><button id="add-group" class="icon-button" aria-label="新建工作组" title="新建工作组"></button></div><nav id="groups" aria-label="小组对话"></nav><div id="nav-empty" hidden>没有找到机器人或工作组</div></div>
+    <div class="sidebar-bottom"><button id="connection" class="connection"><i></i><span>正在连接…</span><b>↻</b></button><button id="account-summary" class="account-summary" aria-label="查看 MiMo 账号"><span id="account-avatar" class="account-avatar">M</span><span class="account-copy"><strong id="account-name">MiMo 账号</strong><small id="account-status">正在读取窗口账号…</small></span><span aria-hidden="true">⌃</span></button><div class="sidebar-utilities"><button id="settings"><span id="settings-icon"></span><span>外观与设置</span></button><button id="help" class="icon-button" aria-label="使用帮助" title="使用帮助"></button></div></div>
+  </aside>
+  <main>
+    <header class="chat-header"><div class="title-row"><span id="header-avatar"></span><div><h1 id="title">MiMo Dots</h1><p id="subtitle">正在读取工作台…</p></div></div><div class="header-actions"><button id="memory" class="quiet" title="查看本聊天的约定">约定 <span id="memory-count">0</span></button><button id="pause" class="quiet" hidden>暂停派活</button><button id="toggle-activity" class="quiet details-button" aria-label="资料与进度" aria-expanded="false"><span id="details-icon"></span><span>资料与进度</span></button><div class="menu-anchor"><button id="more" class="icon-button" aria-label="更多操作" aria-haspopup="menu" aria-expanded="false"></button><div id="more-menu" role="menu" hidden><button id="menu-avatars" role="menuitem">头像与外观</button><button id="menu-connection" role="menuitem">连接与角色</button><div class="menu-divider"></div><button id="menu-export" role="menuitem">导出任务与记忆</button><button id="menu-help" role="menuitem">使用帮助</button></div></div></div></header>
+    <div id="banner" class="banner" hidden></div>
+    <section id="chat" class="chat" aria-live="polite"></section>
+    <section class="composer-area">
+      <div id="files" class="file-chips"></div>
+      <form id="composer" class="composer">
+        <textarea id="prompt" aria-label="任务内容" rows="2" maxlength="14000" placeholder="写下想法，或交给我一个任务…"></textarea>
+        <div class="composer-bottom"><div class="composer-controls"><button type="button" id="attach" class="icon-button" aria-label="添加资料" title="添加资料"></button><button type="button" id="workspace" class="icon-button" aria-label="成果文件夹" title="选择成果文件夹"></button><span class="control-divider"></span><label id="route-label" hidden><select id="route" aria-label="选择本条任务的回复成员"><option value="auto">小组协作</option></select></label><span id="scope-hint">私聊 · 独立会话</span></div><button type="submit" id="send" class="primary send-button" aria-label="发送任务" title="发送任务"></button></div>
+      </form>
+      <div class="composer-note"><span id="workspace-label">未选择成果文件夹 · 当前只回复内容</span><span>Enter 发送 · Shift + Enter 换行</span></div>
+    </section>
+  </main>
+  <aside class="activity" aria-label="资料与进度" hidden><div class="activity-header"><h2>资料与进度</h2><button id="close-activity" class="icon-button" aria-label="关闭资料与进度"></button></div><div class="activity-content"><div class="activity-summary"><span>本聊天任务</span><span id="task-count">0</span></div><div id="runs"></div><div id="tasks"></div></div><div class="activity-footer">关闭工作台不会停止 MiMo 任务。<br>重开后核对进度，不会重复派活。</div></aside>
+  <dialog id="panel"><div class="dialog-header"><h2 id="panel-title"></h2><button id="panel-close" aria-label="关闭">×</button></div><div id="panel-body"></div></dialog>
+  <div id="toast" role="status" hidden></div>
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>
