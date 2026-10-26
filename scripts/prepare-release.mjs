@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs';
-import { appendFile, readFile, stat, writeFile } from 'node:fs/promises';
+import { appendFile, copyFile, readFile, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { dirname, relative, resolve, sep } from 'node:path';
@@ -15,10 +15,13 @@ if (!info.isFile() || info.size === 0) throw new Error('Windows installer is mis
 const hash = createHash('sha256');
 for await (const chunk of createReadStream(installer)) hash.update(chunk);
 const digest = hash.digest('hex');
-const checksum = `${installer}.sha256`;
-await writeFile(checksum, `${digest}  ${config.productName} Setup ${pkg.version}.exe\n`, 'ascii');
+const publishedName = `${config.productName.replaceAll(' ', '.')}.Setup.${pkg.version}.exe`;
+const publishedInstaller = resolve(dirname(installer), publishedName);
+await copyFile(installer, publishedInstaller);
+const checksum = `${publishedInstaller}.sha256`;
+await writeFile(checksum, `${digest}  ${publishedName}\n`, 'ascii');
 
-const assetPath = relative(root, installer).split(sep).join('/');
+const assetPath = relative(root, publishedInstaller).split(sep).join('/');
 const checksumPath = relative(root, checksum).split(sep).join('/');
 const outputs = `version=${pkg.version}\ninstaller_path=${assetPath}\nchecksum_path=${checksumPath}\n`;
 if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, outputs, 'utf8');
