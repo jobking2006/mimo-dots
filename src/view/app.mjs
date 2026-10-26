@@ -347,4 +347,3 @@ try {
   ;[state,appearance]=await Promise.all([api('state'),api('appearance')]);render();if(appearance.warning)toast(appearance.warning)
   window.workbench.subscribe(s => { state = s; render() })
 } catch(e) { $('banner').hidden=false;$('banner').textContent='工作台数据暂时未能读取，请重新打开应用。';toast(e.message) }
-

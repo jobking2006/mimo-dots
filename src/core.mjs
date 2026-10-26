@@ -276,4 +276,3 @@ export class Workbench {
     await this.store.release()
   }
 }
-

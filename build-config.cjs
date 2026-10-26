@@ -15,4 +15,3 @@ module.exports = {
   compression: 'normal',
   portable: { artifactName: 'MiMo-Dots-${version}.exe', useZip: true }
 }
-

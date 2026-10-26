@@ -17,34 +17,43 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-windows-main
+  cancel-in-progress: true
+
 jobs:
   release-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22.12
+          node-version: '22.12.0'
           cache: npm
-      - run: npm install --no-audit --no-fund
+      - run: npm ci
       - run: npm run dist
-      - name: Create checksum
-        shell: pwsh
-        run: |
-          $installer = Get-ChildItem 'release/dots-*' -Filter 'MiMo Dots Setup *.exe' -File -Recurse | Select-Object -First 1
-          if (-not $installer) { throw 'Windows installer was not produced.' }
-          $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $($installer.Name)" | Set-Content -LiteralPath "$($installer.FullName).sha256" -Encoding ascii
-          "installer_path=$($installer.FullName)" >> $env:GITHUB_OUTPUT
-          "version=$((Get-Content package.json -Raw | ConvertFrom-Json).version)" >> $env:GITHUB_OUTPUT
+      - name: Prepare installer and checksum
+        id: checksum
+        run: node scripts/prepare-release.mjs
       - uses: softprops/action-gh-release@v2
         with:
+          token: ${{ github.token }}
           tag_name: v${{ steps.checksum.outputs.version }}
           name: MiMo Dots ${{ steps.checksum.outputs.version }}
-          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
+          body: |
+            MiMo Dots 0.4.1 Windows x64 安装版。
+
+            - 默认角色为 PM、Coder、QA，提供项目开发组。
+            - 新增日式插画应用图标，清理默认测试示例与旧测试会话自动绑定。
+            - 安装包不含个人账号信息、聊天记录或本机工作台数据。
+            - 基于 Fei2411/DeepSeek-Bot 二次开发的 MiMo Desktop 版本。
+
+            下载 EXE 安装包即可安装；SHA-256 校验文件一并提供。
+            当前安装包未进行代码签名。
           files: |
             ${{ steps.checksum.outputs.installer_path }}
-            ${{ steps.checksum.outputs.installer_path }}.sha256
+            ${{ steps.checksum.outputs.checksum_path }}
           fail_on_unmatched_files: true
 
 

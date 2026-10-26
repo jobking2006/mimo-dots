@@ -71,4 +71,3 @@ MiMo 目前没有提供新建会话、回复工具权限或取消任务的 Deskt
 本项目是独立本地应用，非 Xiaomi 官方产品。
 参考与来源：https://github.com/Fei2411/DeepSeek-Bot （Apache-2.0）
 运行不依赖 DSH；工作台不直接连接模型代理或读取模型服务密钥。
-

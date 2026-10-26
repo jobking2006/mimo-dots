@@ -39,7 +39,7 @@ npm ci
 npm start
 ```
 
-构建 Windows 便携版：
+构建 Windows 安装版：
 
 ```powershell
 npm run dist
@@ -50,4 +50,3 @@ npm run dist
 ## 许可与致谢
 
 本衍生项目按 Apache License 2.0 发布。许可条款和上游归属见 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。
-

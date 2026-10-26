@@ -157,4 +157,3 @@ else {
   app.on('activate', () => { win.show(); win.focus() })
   }).catch(e => { dialog.showErrorBox('工作台启动失败', e.message); stopping = true; app.quit() })
 }
-

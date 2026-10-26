@@ -39,7 +39,7 @@ npm ci
 npm start
 ```
 
-Create a portable Windows build with:
+Create a Windows installer with:
 
 ```powershell
 npm run dist
@@ -50,4 +50,3 @@ The app reads the local MiMo Desktop API descriptor at runtime to connect to you
 ## License and attribution
 
 This derivative is distributed under the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for license terms and attribution to the upstream project.
-
