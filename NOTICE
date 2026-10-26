@@ -1,17 +1,14 @@
-MiMo Dots
+MiMo Bot 工作台 / MiMo Bot Workbench
+独立本地应用，非 Xiaomi 官方产品。
 
-MiMo Dots is an independent derivative project developed from the open-source
-Fei2411/DeepSeek-Bot project:
-https://github.com/Fei2411/DeepSeek-Bot
+Source and product reference: https://github.com/Fei2411/DeepSeek-Bot
+Apache License 2.0. The original repository and Git history remain in ../DeepSeek-Bot.
+The DesktopClient adapter was originally developed in this workspace under
+DeepSeek-Bot/integrations/mimo-desktop/client.mjs and adapted for this application.
+The independent application does not import the DSH runtime.
+No Xiaomi MiMo, Grok Bot or Cursor proprietary source code or assets are included.
 
-The upstream project is licensed under the Apache License, Version 2.0. This
-project retains the Apache License and this attribution notice. MiMo Dots is a
-separate application adapted for Xiaomi MiMo Desktop and is not an official
-release of, or endorsed by, the upstream project or Xiaomi.
-The upstream attribution notices are retained verbatim in UPSTREAM-NOTICE.
+The PIPO white interface and three default anime portrait illustrations were
+created in this workspace. Portraits were generated with OpenAI image_gen for
+this application and do not depict named existing fictional characters.
 
-The standalone workbench and MiMo Desktop integration were developed for this
-derivative. No Xiaomi MiMo, Grok Bot, or Cursor proprietary source code or
-assets are included. The interface and anime-style avatar illustrations were
-created for this project; the illustrations were generated for MiMo Dots and
-do not depict named existing fictional characters.

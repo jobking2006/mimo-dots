@@ -18,6 +18,14 @@ English: [README.md](README.md)
 - 使用内置日式插画头像，或选择本地图片。
 - 显示本机 MiMo Desktop 界面提供的账号名称与登录状态。账号状态运行时读取、仅保存在内存中；账号名和 MiMo 凭据不会打包进应用。MiMo Desktop 当前未提供可读取的剩余额度。
 
+## 界面预览
+
+![MiMo Dots 0.4.1 主界面](docs/images/mimo-dots-0.4.1.png)
+
+## 下载
+
+前往 [Releases](https://github.com/jobking2006/mimo-dots/releases) 下载 Windows 安装包。首次安装时，Windows 可能会提示发布者未知，因为安装包目前未进行代码签名。
+
 ## 环境要求
 
 - Windows x64
@@ -42,3 +50,4 @@ npm run dist
 ## 许可与致谢
 
 本衍生项目按 Apache License 2.0 发布。许可条款和上游归属见 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。
+

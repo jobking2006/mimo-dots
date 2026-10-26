@@ -2,9 +2,4 @@ node_modules/
 release/
 .local/
 *.log
-native/bin/
-.env
-.env.*
-!.env.example
-.DS_Store
-Thumbs.db
+

@@ -16,3 +16,8 @@ dialog{padding:0;border:1px solid #dcdce8;border-radius:12px;background:#fdfdff;
 .setup-notice{display:block;margin:6px 14px;padding:7px 10px;text-align:left;font-size:11px;line-height:1.6;color:#6672ad;border:1px solid #dedfee;background:#f2f3fa}.setup-record{padding:14px 0;border-bottom:1px solid var(--line)}.setup-record>strong{font-size:13px;font-weight:600}.setup-record .intro{margin:8px 0}.setup-item{font-size:12px;color:#757588;line-height:1.7;overflow-wrap:anywhere;margin:5px 0}.setup-record .panel-actions{margin-top:12px}
 @media(prefers-reduced-transparency:reduce){.sidebar{background:#f8f8fa;backdrop-filter:none}.chat-header,#more-menu{background:#fff;backdrop-filter:none}.activity{background:#fcfcfe;backdrop-filter:none}#toast{background:#f9f9fe;backdrop-filter:none}}
 @media(prefers-contrast:more){:root{--muted:#61617a;--line:#afafc5}.sidebar{background:#f5f5f9;backdrop-filter:none;border-color:#b8b8ce}.chat-header{background:white;backdrop-filter:none;border-color:#b8b8ce}.nav-copy small,.chat-header p,.message-head small,.message-note,.composer-note,.intro,.help p,.field,.activity-footer,.task-detail{color:#62627b}.message.bot .message-text{background:#f0f0f6;color:#41415a}.composer,dialog,#more-menu{border-color:#a2a2bd}.table-wrap th,.table-wrap td{color:#55556e;border-color:#b5b5cc}.copy-reply{opacity:1}}
+
+.brand-icon{width:31px;height:31px;flex:0 0 31px;object-fit:cover;border-radius:9px;background:#f7f7ff;box-shadow:0 1px 3px #29295516}
+.welcome-hint{font-size:12px!important;color:#89899c!important;margin-top:14px!important}
+
+

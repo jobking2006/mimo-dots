@@ -75,19 +75,16 @@ function renderChat() {
   if (!tasks.length) {
     const welcome = el('div', 'welcome'); welcome.append(current.type === 'group' ? groupAvatar(chosen(),state.bots,appearance) : avatar(chosen(),appearance))
     welcome.append(el('h2', '', current.type === 'group' ? `和${chosen().name}一起讨论` : `和${chosen().name}聊聊`))
-    welcome.append(el('p', '', current.type === 'group' ? '主理安排分工，策划与审查按步骤接力。\n每一步都来自独立的 MiMo 会话，有记录可追溯。' : '写下需求、补充资料，实际工作交给本机 MiMo。\n任务和结果会留在这里，随时可以继续。'))
-    const suggestions = el('div', 'suggestions')
-    for (const text of current.type === 'group' ? ['策划先写一个闪避技能方案，审查指出漏洞，主理汇总最终版本。', '把这个玩法想法整理成需求、边界条件和验收清单。'] : ['把一个“完美闪避后触发反击”的想法整理成策划说明。', '帮我检查一份功能需求，有哪些规则没说清楚？', '先列出完成这件事需要我补充的资料。']) {
-      const b = button(text, () => { $('prompt').value = text; $('prompt').focus() }, ''); b.append(el('span', '', '↗')); suggestions.append(b)
-    }
-    welcome.append(suggestions); nodes.push(welcome)
+    welcome.append(el('p', '', current.type === 'group' ? 'PM 拆分需求，Coder 与 QA 按步骤协作，最后由 PM 汇总。\n每一步使用独立的 MiMo 会话。' : '写下需求、补充资料，实际工作交给本机 MiMo。\n任务和结果会留在这里，随时可以继续。'))
+    welcome.append(el('p', 'welcome-hint', '直接写下你想完成的事；需要资料时，可在输入框添加文件。'))
+    nodes.push(welcome)
   }
   const seenRuns = new Set()
   for (const t of tasks) {
     if (!t.runId || !seenRuns.has(t.runId)) {
       const r = t.runId && state.runs.find(r => r.id === t.runId)
       const user = el('article', 'message user'); user.append(renderText(r?.instruction ?? t.instruction)); user.append(el('div', 'message-note', `${time(r?.created ?? t.created)}${t.files.length ? ` · ${t.files.length} 份资料` : ''}`)); nodes.push(user)
-      if (r) { seenRuns.add(t.runId); nodes.push(el('div', 'run-label', '协作流程 · 主理分工 → 成员依次接力 → 主理汇总')) }
+      if (r) { seenRuns.add(t.runId); nodes.push(el('div', 'run-label', '协作流程 · PM 分工 → 成员依次接力 → PM 汇总')) }
     }
     const article = el('article', 'message bot'), b = bot(t.botId)
     article.append(avatar(b,appearance))
@@ -115,7 +112,7 @@ function renderTasks() {
   const runs = state.runs.filter(r => current.type === 'group' && r.groupId === current.id && ['running', 'blocked'].includes(r.status))
   $('runs').replaceChildren(...runs.map(r => {
     const card = el('div', 'run-card'); card.append(el('strong', '', r.status === 'blocked' ? '协作需要核对' : chosen().paused ? '后续派活已暂停' : '协作进行中'))
-    card.append(el('p', '', r.detail ?? (r.stage === 'plan' ? '主理正在制定分工' : r.stage === 'step' ? `成员接力 ${r.index + 1}/${r.steps.length}` : '主理正在汇总')))
+    card.append(el('p', '', r.detail ?? (r.stage === 'plan' ? 'PM 正在制定分工' : r.stage === 'step' ? `成员接力 ${r.index + 1}/${r.steps.length}` : 'PM 正在汇总')))
     card.append(button('结束后续接力', () => api('endRun', r.id), 'tiny')); return card
   }))
   $('tasks').replaceChildren(...(tasks.length ? [...tasks].reverse().slice(0, 150).map(t => {
@@ -205,7 +202,7 @@ async function settings() {
   const body = panel('连接与角色')
   body.append(el('p', 'intro', '每个私聊和每位群成员各用一个独立 MiMo 会话。点击“自动创建”即可由工作台操作 MiMo 完成初始化和绑定；也可手动选择专用会话。'))
   const actions = el('div', 'panel-actions')
-  actions.append(button('会话创建进度',setupProgress),button('识别原有六个会话', async () => { const found = await api('autoBind'); toast(found.length ? `已绑定 ${found.length} 个会话` : '已有绑定保持不变；同名多个会话请手动选择。'); await settings() }), button('打开 MiMo', () => api('openMiMo')), button('刷新列表', () => settings()),button('头像与外观',avatarPanel))
+  actions.append(button('会话创建进度',setupProgress), button('打开 MiMo', () => api('openMiMo')), button('刷新列表', () => settings()),button('头像与外观',avatarPanel))
   body.append(actions, el('p', 'intro', `状态：${state.connection.detail}${state.connection.version ? ` · MiMo ${state.connection.version}` : ''}`))
   const sessions = await api('sessions')
   if (!$('panel').open || $('panel-title').textContent !== '连接与角色') return
@@ -234,7 +231,7 @@ function editBot(b) {
 }
 function createGroup() {
   const body = panel('新建工作组'), name = field('工作组名字', ''), members = new Set(['chief'])
-  body.append(name.label, el('p', 'intro', '主理负责分工。请选择参与接力的成员；每位成员都需要新的群聊专用会话。'))
+  body.append(name.label, el('p', 'intro', 'PM 负责分工。请选择参与接力的成员；每位成员都需要新的群聊专用会话。'))
   for (const b of state.bots) {
     const label = el('label', 'checkbox'), input = el('input'); input.type = 'checkbox'; input.checked = b.id === 'chief'; input.disabled = b.id === 'chief'; input.onchange = () => input.checked ? members.add(b.id) : members.delete(b.id); label.append(input, document.createTextNode(b.name)); body.append(label)
   }
@@ -288,7 +285,7 @@ function help() {
   const body = panel('开始使用'), content = el('div', 'help')
   const rows = [
     ['1. 保持 MiMo 打开', '本工作台负责聊天、派活和保存记录。实际推理、工具执行与权限确认都在你本机的 MiMo Desktop。'],
-    ['2. 选择一个 Bot 或工作组', '左侧 Bot 是私聊；工作组使用另一套会话。群里可交给主理自动分工，也可在输入区下方选择一位成员。自动接力最多 4 个成员步骤，再由主理汇总。'],
+    ['2. 选择一个 Bot 或工作组', '左侧 Bot 是私聊；工作组使用另一套会话。群里可交给 PM 自动分工，也可在输入区下方选择一位成员。自动接力最多 4 个成员步骤，再由 PM 汇总。'],
     ['3. 要生成文件，先选成果文件夹', '建议从新的空文件夹开始。点击“添加资料”选文件。工作台会把指定文件夹传给 MiMo，并列出期间修改的文件；文件内容仍需你确认。首版文件夹范围属于任务约定，不是 MiMo 工具的强制沙箱。'],
     ['4. 任务状态怎么看', '“核对提交”表示接口接受不等于已经执行；“执行 / 待确认”时，MiMo 可能需要你同意工具权限；“回合结束”表示模型结束回答，不等于成果验收。确认内容后可点击“确认成果可用”。'],
     ['5. 暂停与停止', '群里的“暂停派活”会阻止后续提交；当前已提交任务仍在 MiMo 执行。需要真正停止时去 MiMo。核对已结束后才能解除会话占用。关闭工作台也不会停止 MiMo。'],
@@ -350,3 +347,4 @@ try {
   ;[state,appearance]=await Promise.all([api('state'),api('appearance')]);render();if(appearance.warning)toast(appearance.warning)
   window.workbench.subscribe(s => { state = s; render() })
 } catch(e) { $('banner').hidden=false;$('banner').textContent='工作台数据暂时未能读取，请重新打开应用。';toast(e.message) }
+

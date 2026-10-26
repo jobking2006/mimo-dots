@@ -5,13 +5,33 @@ import { join } from 'node:path'
 export function initialState() {
   return {
     version: 1, workspace: '', bots: [
-      { id: 'chief', name: '主理 Bot', role: '理解用户需求，拆分工作，汇总交付。', color: '#307469', binding: null, memories: [] },
-      { id: 'planner', name: '策划 Bot', role: '将玩法想法写成规则清晰、边界明确、可落地的策划说明。', color: '#b77b40', binding: null, memories: [] },
-      { id: 'reviewer', name: '审查 Bot', role: '检查策划方案的歧义、遗漏、数值边界和验收条件，区分阻塞与建议。', color: '#7466a2', binding: null, memories: [] },
+      { id: 'chief', name: 'PM', role: '理解目标，拆分需求，协调工作并汇总交付。', color: '#307469', binding: null, memories: [] },
+      { id: 'planner', name: 'Coder', role: '根据需求实现功能，说明改动内容并交付可用结果。', color: '#b77b40', binding: null, memories: [] },
+      { id: 'reviewer', name: 'QA', role: '检查实现和边界情况，报告缺陷、阻塞与验证结果。', color: '#7466a2', binding: null, memories: [] },
     ],
-    groups: [{ id: 'design', name: '策划工作组', members: ['chief', 'planner', 'reviewer'], bindings: {}, memories: [], paused: false }],
+    groups: [{ id: 'design', name: '项目开发组', members: ['chief', 'planner', 'reviewer'], bindings: {}, memories: [], paused: false }],
     tasks: [], runs: [],
   }
+}
+
+const legacyDefaults = [
+  { id: 'chief', before: '主理 Bot', beforeRole: '理解用户需求，拆分工作，汇总交付。', name: 'PM', role: '理解目标，拆分需求，协调工作并汇总交付。' },
+  { id: 'planner', before: '策划 Bot', beforeRole: '将玩法想法写成规则清晰、边界明确、可落地的策划说明。', name: 'Coder', role: '根据需求实现功能，说明改动内容并交付可用结果。' },
+  { id: 'reviewer', before: '审查 Bot', beforeRole: '检查策划方案的歧义、遗漏、数值边界和验收条件，区分阻塞与建议。', name: 'QA', role: '检查实现和边界情况，报告缺陷、阻塞与验证结果。' },
+]
+function migrateLegacyDefaults(state) {
+  let changed = false
+  for (const item of legacyDefaults) {
+    const bot = state.bots?.find(bot => bot.id === item.id)
+    if (bot?.name === item.before && bot.role === item.beforeRole) {
+      bot.name = item.name; bot.role = item.role; changed = true
+    }
+  }
+  const group = state.groups?.find(group => group.id === 'design')
+  if (group?.name === '策划工作组' && group.members?.join(',') === 'chief,planner,reviewer') {
+    group.name = '项目开发组'; changed = true
+  }
+  return changed
 }
 
 export class Store {
@@ -45,6 +65,7 @@ export class Store {
       this.state = initialState(); await this.save()
     }
     if (this.state.version !== 1 || !Array.isArray(this.state.tasks)) { await this.release(); throw new Error('工作台数据版本不兼容。') }
+    if (migrateLegacyDefaults(this.state)) await this.save()
     return this.state
   }
   save() {
@@ -64,3 +85,4 @@ export class Store {
     this.ownsLock = false
   }
 }
+

@@ -65,17 +65,6 @@ export class Workbench {
     else this.bot(botId).binding = binding
     await this.persist(); return binding
   }
-  async autoBind() {
-    const sessions = await this.sessions()
-    const names = [ ['chief', null, 'DS Bot 接入测试'], ['planner', null, '工作台-策划'], ['reviewer', null, '工作台-审查'], ['chief', 'design', '工作台群-主理'], ['planner', 'design', '工作台群-策划'], ['reviewer', 'design', '工作台群-审查'] ]
-    const bound = []
-    for (const [botId, groupId, title] of names) {
-      if (this.binding(botId, groupId)) continue
-      const matches = sessions.filter(s => s.title === title)
-      if (matches.length === 1) { await this.bind({ botId, groupId, sessionId: matches[0].sessionId }); bound.push(title) }
-    }
-    return bound
-  }
   async setWorkspace(path) {
     if (path && (!isAbsolute(path) || !(await stat(path)).isDirectory())) throw new Error('请选择有效文件夹。')
     this.s.workspace = path; await this.persist()
@@ -287,3 +276,4 @@ export class Workbench {
     await this.store.release()
   }
 }
+

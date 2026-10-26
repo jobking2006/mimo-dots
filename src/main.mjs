@@ -83,7 +83,6 @@ else {
     state: () => core.snapshot(),
     refresh: () => core.refresh(),
     sessions: () => core.sessions(),
-    autoBind: () => core.autoBind(),
     bind: input => core.bind(input),
     bot: input => core.updateBot(input),
     group: input => core.createGroup(input),
@@ -147,7 +146,7 @@ else {
     if (!Object.hasOwn(handlers, command)) return { ok: false, error: '不支持的操作。' }
     if(command==='setupCancel')return {ok:true,value:setup.cancel()}
     return serialize(async()=>{
-      if(setup.active&&['bind','autoBind','bot','group','send','collaborate'].includes(command))throw new Error('正在创建 MiMo 会话，请等结束或先取消。')
+      if(setup.active&&['bind','bot','group','send','collaborate'].includes(command))throw new Error('正在创建 MiMo 会话，请等结束或先取消。')
       return handlers[command](input)
     }).then(value=>({ok:true,value}),e=>({ok:false,error:e.message||'操作未完成，请稍候再试。'}))
   })
@@ -158,3 +157,4 @@ else {
   app.on('activate', () => { win.show(); win.focus() })
   }).catch(e => { dialog.showErrorBox('工作台启动失败', e.message); stopping = true; app.quit() })
 }
+

@@ -18,6 +18,14 @@ MiMo Dots is not affiliated with or endorsed by Xiaomi. It does not include Xiao
 - Use built-in anime-style avatars or choose a local image.
 - View the account name and login state exposed by the local MiMo Desktop UI. Account status is read at runtime and kept in memory; the app does not bundle your account name or MiMo credentials. Remaining usage is not currently available from MiMo Desktop.
 
+## Preview
+
+![MiMo Dots 0.4.1 main window](docs/images/mimo-dots-0.4.1.png)
+
+## Download
+
+Visit [Releases](https://github.com/jobking2006/mimo-dots/releases) to download the Windows installer. Windows may warn that the publisher is unknown because the installer is not code-signed yet.
+
 ## Requirements
 
 - Windows x64
@@ -42,3 +50,4 @@ The app reads the local MiMo Desktop API descriptor at runtime to connect to you
 ## License and attribution
 
 This derivative is distributed under the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for license terms and attribution to the upstream project.
+
