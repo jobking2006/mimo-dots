@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 22.12
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run dist
       - name: Create checksum
         shell: pwsh
@@ -46,5 +46,6 @@ jobs:
             ${{ steps.checksum.outputs.installer_path }}
             ${{ steps.checksum.outputs.installer_path }}.sha256
           fail_on_unmatched_files: true
+
 
 
