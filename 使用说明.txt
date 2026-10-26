@@ -1,8 +1,10 @@
-MiMo Dots · 0.4.0
+MiMo Dots · macOS 预发布版 / Windows
 
 怎么打开
-双击桌面“MiMo Dots”，或打开 release/dots-0.4.0/win-unpacked/ 中的“MiMo Dots.exe”。
-release/dots-0.4.0/ 中另有单文件便携版，不需要安装 Node、配置 API Key 或启动终端。
+macOS：打开 DMG，把 MiMo Dots 拖到“应用程序”，双击启动。需要在系统设置允许 MiMo Dots 的辅助功能权限。
+当前 macOS 包只有 ad-hoc 临时签名，没有 Developer ID 签名或公证。首次运行可按系统提示在隐私与安全性中“仍要打开”；不要关闭系统安全保护。
+Windows：运行 GitHub Releases 的 EXE 安装程序，再从快捷方式打开。
+无需安装 Node、配置 API Key 或启动终端。
 保持你已安装的 MiMo Desktop 打开并登录，使用你在 MiMo 中已有的模型。
 
 窗口与账号
@@ -64,7 +66,8 @@ MiMo 目前没有提供新建会话、回复工具权限或取消任务的 Deskt
 文件与数据
 任务只会要求 MiMo 在所选成果文件夹施工；这属于任务约定，不是工具强制沙箱。
 成果列表按回合期间修改时间发现文件，可能包含其他程序同期修改的文件，请核对归属。
-工作台数据：%APPDATA%\MiMoBotWorkbench\state.json
+Windows 工作台数据：%APPDATA%\MiMoBotWorkbench\state.json
+macOS 工作台数据：~/Library/Application Support/MiMoBotWorkbench/state.json
 包含任务、记忆、会话绑定，不保存 MiMo 认证 token。设置中可导出记录或打开数据目录。
 首版不自动读取成果内容，不接管真实游戏工程。建议先用新的示例文件夹试用。
 

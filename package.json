@@ -1,7 +1,7 @@
 {
   "name": "mimo-bot-workbench",
   "productName": "MiMo Dots",
-  "version": "0.4.1",
+  "version": "0.4.2-macos.1",
   "description": "独立的本地 MiMo Desktop 多 Bot 工作台",
   "author": "Local workbench contributors",
   "license": "Apache-2.0",
@@ -12,9 +12,11 @@
     "prepack": "node scripts/build-bridge.mjs",
     "predist": "node scripts/build-bridge.mjs",
     "start": "electron .",
-    "pack": "electron-builder --win dir --config build-config.cjs",
-    "dist": "electron-builder --win nsis --config build-config.cjs --publish never",
-    "test": "node --test checks/*.test.mjs"
+    "pack": "electron-builder --dir --config build-config.cjs",
+    "dist": "node scripts/dist.mjs",
+    "test": "node --test checks/*.test.mjs",
+    "dist:mac": "node scripts/build-mac.mjs",
+    "dist:win": "npm run predist && electron-builder --win nsis --x64 --config build-config.cjs --publish never"
   },
   "devDependencies": {
     "electron": "45.0.0",

@@ -204,6 +204,10 @@ async function settings() {
   const actions = el('div', 'panel-actions')
   actions.append(button('会话创建进度',setupProgress), button('打开 MiMo', () => api('openMiMo')), button('刷新列表', () => settings()),button('头像与外观',avatarPanel))
   body.append(actions, el('p', 'intro', `状态：${state.connection.detail}${state.connection.version ? ` · MiMo ${state.connection.version}` : ''}`))
+  if(await api('platform')==='darwin') {
+    actions.append(button('辅助功能权限',async()=>{const ready=await api('accessibility');toast(ready?'辅助功能权限已开启':'请在系统设置的辅助功能列表允许 MiMo Dots，然后重新打开工作台。')}))
+    body.append(el('p','intro','macOS：自动建会话和读取账号需要辅助功能权限。点击“辅助功能权限”，在系统设置中允许 MiMo Dots 后重新打开应用。'))
+  }
   const sessions = await api('sessions')
   if (!$('panel').open || $('panel-title').textContent !== '连接与角色') return
   async function bindingRow(b, groupId) {

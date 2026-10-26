@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, screen, nativeImage, nativeTheme } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, shell, screen, nativeImage, nativeTheme, systemPreferences } from 'electron'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { mkdir, stat, realpath, writeFile } from 'node:fs/promises'
@@ -8,6 +8,7 @@ import { Workbench } from './core.mjs'
 import { Appearance } from './appearance.mjs'
 import { SessionSetup } from './session-setup.mjs'
 import { AccountStatus } from './account-status.mjs'
+import { helperName, launchMiMo } from './platform.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 // Keep the original Chromium profile/instance-lock location across the rename.
@@ -36,7 +37,7 @@ else {
   core = new Workbench(store, new DesktopClient(), s => { if (win && !win.isDestroyed()) win.webContents.send('state-changed', s) })
   try { await core.start() }
   catch (e) { dialog.showErrorBox('工作台暂时无法启动', e.message); stopping = true; app.quit(); throw e }
-  setup=new SessionSetup(core,app.isPackaged?join(process.resourcesPath,'native','MiMoSessionBridge.exe'):join(here,'..','native','bin','MiMoSessionBridge.exe'),serialize)
+  setup=new SessionSetup(core,app.isPackaged?join(process.resourcesPath,'native',helperName()):join(here,'..','native','bin',helperName()),serialize)
   account=new AccountStatus(setup.executable,s=>{core.account=s;core.onChange(core.snapshot())})
   core.account=account.status
   await setup.init()
@@ -54,6 +55,13 @@ else {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   win.webContents.on('will-navigate', (e, url) => { if (url !== pathToFileURL(join(here, 'view', 'index.html')).href) e.preventDefault() })
   const handlers = {
+    platform: () => process.platform,
+    accessibility: async () => {
+      if(process.platform!=='darwin')return true
+      const trusted=systemPreferences.isTrustedAccessibilityClient(true)
+      if(!trusted)await shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility')
+      return trusted
+    },
     accountRefresh: async () => {
       if(setup.active)throw new Error('请等会话创建结束后再同步账号。')
       try{return await account.refresh(true)}finally{if(!win.isDestroyed()){win.show();win.focus()}}
@@ -132,10 +140,7 @@ else {
     },
     showWorkspace: async () => { if (core.s.workspace) { const err = await shell.openPath(core.s.workspace); if (err) throw new Error('文件夹无法打开，请重新选择。') } },
     showData: () => shell.openPath(dataDir),
-    openMiMo: async () => {
-      const exe = join(process.env.LOCALAPPDATA, 'Programs', 'Xiaomi MiMo', 'Xiaomi MiMo.exe')
-      const err = await shell.openPath(exe); if (err) throw new Error('没有在常用安装位置找到 MiMo，请手动打开。')
-    },
+    openMiMo: () => launchMiMo(),
     exportHistory: async () => {
       const r = await dialog.showSaveDialog(win, { title: '导出工作台记录（不含认证凭据）', defaultPath: '工作台记录.json', filters: [{ name: 'JSON', extensions: ['json'] }] })
       if (!r.canceled) await writeFile(r.filePath, JSON.stringify(core.s, null, 2), 'utf8')

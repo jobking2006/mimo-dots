@@ -5,10 +5,13 @@ import { turnState, selectedModel } from './desktop-client.mjs'
 
 const pending = new Set(['running', 'needsReview'])
 const sleep = ms => new Promise(r => setTimeout(r, ms))
+// Observed MiMo UI uses MiMo-V2.6-* while Desktop messages use mimo-v2.6-*.
+// Only these verified aliases are normalized; other provider/model IDs stay exact.
+const modelIdentity=id=>['mimo-v2.6-flash','mimo-v2.6-pro'].includes(id.toLowerCase())?id.toLowerCase():id
 
 // UI only creates the session; identity, model and turn completion come from the local API.
 export class SessionSetup {
-  constructor(core, executable, mutate) { this.core=core; this.executable=executable; this.mutate=mutate; this.active=false }
+  constructor(core, executable, mutate, {platform=process.platform}={}) { this.platform=platform;this.core=core; this.executable=executable; this.mutate=mutate; this.active=false }
   get jobs() { return this.core.s.sessionSetups ??= [] }
   async init() {
     for (const job of this.jobs) if (job.status==='running') {
@@ -45,7 +48,7 @@ export class SessionSetup {
     setImmediate(()=>this.execute(job,false).catch(()=>{}))
     return job.id
   }
-  helper(input,signal,onProgress=()=>{}) {
+  helper(input,signal,onProgress=()=>{},onSelection=async()=>{}) {
     return new Promise((resolve,reject)=>{
       const child=spawn(this.executable,[],{stdio:['pipe','pipe','pipe'],windowsHide:true})
       this.child=child;let result,error,settled=false
@@ -54,13 +57,17 @@ export class SessionSetup {
       if(signal?.aborted)abort()
       const timer=setTimeout(()=>{error=new Error('窗口操作超时，已停止；请核对是否已创建会话。');child.kill()},30000)
       const lines=createInterface({input:child.stdout})
-      lines.on('line',line=>{try{const e=JSON.parse(line);if(e.type==='result')result=e;else if(e.type==='error')error=new Error(e.message);else if(e.type==='progress')onProgress(e.detail)}catch{error=new Error('窗口助手返回异常。')}})
+      lines.on('line',line=>{try{const e=JSON.parse(line);if(e.type==='result')result=e;else if(e.type==='error')error=new Error(e.message);else if(e.type==='progress')onProgress(e.detail);else if(e.type==='selection'){
+        if(typeof e.modelID!=='string'||!e.modelID.match(/^[A-Za-z0-9._-]{1,150}$/)){error=new Error('MiMo 模型证据无法识别，未授权初始化。');child.kill();return}
+        Promise.resolve().then(()=>onSelection(e.modelID)).then(()=>{if(!signal?.aborted&&!settled)child.stdin.end(JSON.stringify({operation:'verified-selection',modelID:e.modelID})+'\n')}).catch(()=>{error=new Error('模型证据无法保存，未授权初始化。');child.kill()})
+      }}catch{error=new Error('窗口助手返回异常。')}})
       child.stderr.resume() // Never forward desktop content or OS internals into the renderer/log.
       const finish=e=>{if(settled)return;settled=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);lines.close();if(this.child===child)this.child=null;e?reject(e):resolve(result)}
       child.on('error',()=>finish(new Error('内置窗口助手无法启动，请重新打开工作台。')))
       child.on('close',code=>finish(error||(!result||code!==0?new Error('窗口操作未完成，请核对 MiMo。'):null)))
       child.stdin.on('error',()=>{})
-      child.stdin.end(JSON.stringify(input)+'\n','utf8')
+      if(this.platform==='darwin'&&input.operation==='create')child.stdin.write(JSON.stringify({...input,checkpoint:'true'})+'\n','utf8')
+      else child.stdin.end(JSON.stringify(input)+'\n','utf8')
     })
   }
   async change(job,detail,fn=()=>{}) { return this.mutate(async()=>{fn();if(detail)job.detail=detail;await this.core.persist()}) }
@@ -74,10 +81,10 @@ export class SessionSetup {
         if(recovery && !item.before)continue // Recovery must never create a new session or send again.
         if(!recovery) {
           const before=(await this.core.client.sessions({signal})).map(s=>s.sessionId)
-          await this.change(job,`正在为「${item.name}」创建独立会话`,()=>{item.before=before;item.status='creating'})
+          await this.change(job,`正在为「${item.name}」创建独立会话`,()=>{item.before=before;item.status='creating';item.requiresModelCheckpoint=this.platform==='darwin'})
           const message=`${item.marker} 工作台专用会话：${item.name}。这是连接初始化，不是工作任务。不要调用工具、读写文件或修改配置；只回复 WORKBENCH_SESSION_READY。`
-          await this.helper({operation:'create',model:job.modelLabel,message,activate:created++===0?'true':'false'},signal,detail=>{this.change(job,`${item.name}：${detail}`).catch(()=>{})})
-          await this.change(job,'初始化已提交，正在核对会话身份和回合结束',()=>{item.status='verifying'})
+          const result=await this.helper({operation:'create',model:job.modelLabel,message,activate:created++===0?'true':'false'},signal,detail=>{this.change(job,`${item.name}：${detail}`).catch(()=>{})},modelID=>this.change(job,'已核对窗口模型，正在保存提交前记录',()=>{item.expectedModelID=modelID}))
+          await this.change(job,'初始化已提交，正在核对会话身份和回合结束',()=>{if(this.platform==='darwin'&&!item.expectedModelID)throw new Error('缺少提交前模型证据，请手动核对。');item.status='verifying';if(result?.modelID){if(item.expectedModelID&&item.expectedModelID!==result.modelID)throw new Error('窗口模型证据不一致，请核对。');item.expectedModelID=result.modelID}})
         }
         const deadline=Date.now()+(recovery?30000:120000)
         let binding
@@ -117,6 +124,8 @@ export class SessionSetup {
     }
     if(matches.length>1)throw new Error('找到多个相同标识，已停止自动绑定。')
     const m=matches[0]
+    if(m&&item.requiresModelCheckpoint&&!item.expectedModelID)throw new Error('缺少提交前模型证据，请在 MiMo 手动核对；不会重发初始化。')
+    if(m?.model&&item.expectedModelID&&modelIdentity(m.model.split('/').at(-1))!==modelIdentity(item.expectedModelID))throw new Error('MiMo 实际模型与窗口选择不一致，请核对后手动处理。')
     if(m?.tools?.length)throw new Error('初始化意外调用了工具，请先在 MiMo 核对。')
     return m?.done&&m.model?{...m.s,model:m.model}:null
   }

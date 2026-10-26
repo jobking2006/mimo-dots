@@ -8,16 +8,19 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
 const config = createRequire(import.meta.url)('../build-config.cjs');
-const installer = resolve(root, config.directories.output, `${config.productName} Setup ${pkg.version}.exe`);
+const platform=process.env.MIMO_RELEASE_PLATFORM || process.platform;
+if(!['darwin','win32'].includes(platform))throw new Error('Unsupported release platform');
+const arch=process.env.MIMO_TARGET_ARCH || process.arch;
+const installer = resolve(root, config.directories.output, platform==='darwin'?`MiMo-Dots-${pkg.version}-${arch}.dmg`:`${config.productName} Setup ${pkg.version}.exe`);
 const info = await stat(installer);
-if (!info.isFile() || info.size === 0) throw new Error('Windows installer is missing or empty.');
+if (!info.isFile() || info.size === 0) throw new Error('Installer is missing or empty.');
 
 const hash = createHash('sha256');
 for await (const chunk of createReadStream(installer)) hash.update(chunk);
 const digest = hash.digest('hex');
-const publishedName = `${config.productName.replaceAll(' ', '.')}.Setup.${pkg.version}.exe`;
+const publishedName = platform==='darwin'?`MiMo-Dots-${pkg.version}-${arch}.dmg`:`${config.productName.replaceAll(' ', '.')}.Setup.${pkg.version}.exe`;
 const publishedInstaller = resolve(dirname(installer), publishedName);
-await copyFile(installer, publishedInstaller);
+if(installer!==publishedInstaller)await copyFile(installer, publishedInstaller);
 const checksum = `${publishedInstaller}.sha256`;
 await writeFile(checksum, `${digest}  ${publishedName}\n`, 'ascii');
 

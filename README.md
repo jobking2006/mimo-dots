@@ -24,11 +24,11 @@ MiMo Dots is not affiliated with or endorsed by Xiaomi. It does not include Xiao
 
 ## Download
 
-Visit [Releases](https://github.com/jobking2006/mimo-dots/releases) to download the Windows installer. Windows may warn that the publisher is unknown because the installer is not code-signed yet.
+Visit [Releases](https://github.com/jobking2006/mimo-dots/releases) for the Windows stable installer and the separate macOS arm64 prerelease. See [macOS installation and limitations](docs/MACOS.md). Windows may warn that the publisher is unknown because the installer is not code-signed yet.
 
 ## Requirements
 
-- Windows x64
+- Windows x64, or macOS on Apple Silicon (arm64 prerelease)
 - Node.js 22.12 or later
 - Xiaomi MiMo Desktop installed and signed in
 
@@ -39,7 +39,7 @@ npm ci
 npm start
 ```
 
-Create a Windows installer with:
+Create an installer for the host platform with:
 
 ```powershell
 npm run dist
